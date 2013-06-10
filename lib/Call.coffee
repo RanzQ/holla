@@ -14,11 +14,13 @@ class Call extends Emitter
     @client.io.on "#{@id}:userAdded", @_addNewUser
 
   answer: =>
-    throw new Error "Must call setLocalStream first" unless @localStream
+    # Commented out to allow one directional calls
+    # throw new Error "Must call setLocalStream first" unless @localStream
     @client.io.emit "#{@id}:callResponse", true
     @client.emit "callAnswered", @
     @caller.createConnection()
-    @caller.addLocalStream @localStream
+    if @localStream
+      @caller.addLocalStream @localStream
     @caller.once "sdp", @caller.sendAnswer
     return @
 
@@ -28,7 +30,8 @@ class Call extends Emitter
     return @
 
   add: (name) =>
-    throw new Error "Must call setLocalStream first" unless @localStream
+    # Commented out to allow one directional calls
+    # throw new Error "Must call setLocalStream first" unless @localStream
     @_add name
     @client.io.emit "addUser", @id, name, @_handleUserResponse @user name
     return @user name
@@ -58,7 +61,7 @@ class Call extends Emitter
     throw new Error "Must call setLocalStream first" unless @localStream
     track.enabled = false for track in @localStream.getAudioTracks()
     return @
-  
+
   unmute: =>
     throw new Error "Must call setLocalStream first" unless @localStream
     track.enabled = true for track in @localStream.getAudioTracks()

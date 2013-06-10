@@ -43,13 +43,12 @@
     }
 
     Call.prototype.answer = function() {
-      if (!this.localStream) {
-        throw new Error("Must call setLocalStream first");
-      }
       this.client.io.emit("" + this.id + ":callResponse", true);
       this.client.emit("callAnswered", this);
       this.caller.createConnection();
-      this.caller.addLocalStream(this.localStream);
+      if (this.localStream) {
+        this.caller.addLocalStream(this.localStream);
+      }
       this.caller.once("sdp", this.caller.sendAnswer);
       return this;
     };

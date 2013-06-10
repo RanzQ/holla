@@ -554,13 +554,12 @@ require.register("holla/dist/Call.js", function(exports, require, module){
     }
 
     Call.prototype.answer = function() {
-      if (!this.localStream) {
-        throw new Error("Must call setLocalStream first");
-      }
       this.client.io.emit("" + this.id + ":callResponse", true);
       this.client.emit("callAnswered", this);
       this.caller.createConnection();
-      this.caller.addLocalStream(this.localStream);
+      if (this.localStream) {
+        this.caller.addLocalStream(this.localStream);
+      }
       this.caller.once("sdp", this.caller.sendAnswer);
       return this;
     };
@@ -1113,6 +1112,7 @@ require.register("holla/dist/shims.js", function(exports, require, module){
 
 });
 require.alias("component-emitter/index.js", "holla/deps/emitter/index.js");
+require.alias("component-emitter/index.js", "emitter/index.js");
 require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
 require.alias("holla/dist/holla.js", "holla/index.js");
@@ -1122,5 +1122,5 @@ if (typeof exports == "object") {
 } else if (typeof define == "function" && define.amd) {
   define(function(){ return require("holla"); });
 } else {
-  window["holla"] = require("holla");
+  this["holla"] = require("holla");
 }})();

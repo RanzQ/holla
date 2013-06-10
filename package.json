@@ -1,48 +1,63 @@
 {
-   "name": "holla",
-   "description": "An abstraction over P2P video/voice/data connections using WebRTC",
-   "version": "0.7.0",
-   "homepage": "http://github.com/wearefractal/holla",
-   "repository": "git://github.com/wearefractal/holla.git",
-   "author": "Fractal <contact@wearefractal.com> (http://wearefractal.com/)",
-   "main": "./index.js",
-   "keywords": [
-      "webrtc",
-      "rtc",
-      "calling",
-      "call",
-      "voip",
-      "p2p",
-      "data",
-      "sip",
-      "voice",
-      "phone",
-      "peer"
-   ],
-   "dependencies": {
-      "coffee-script": "*",
-      "async": "*",
-      "socket.io": "0.9.14",
-      "base64id": "*"
-   },
-   "devDependencies": {
-      "mocha": "*",
-      "should": "*",
-      "connect": "*",
-      "uglify-js": "*"
-   },
-   "scripts": {
-      "test": "mocha --compilers coffee:coffee-script --reporter spec",
-      "start": "examples/server.coffee"
-   },
-   "engines": {
-      "node": ">= 0.6.0"
-   },
-   "licenses": [
-      {
-         "type": "MIT",
-         "url": "http://github.com/wearefractal/holla/raw/master/LICENSE"
-      }
-   ],
-   "subdomain": "holla"
+  "name": "holla",
+  "description": "An abstraction over P2P video/voice/data connections using WebRTC",
+  "version": "0.7.0",
+  "homepage": "http://github.com/wearefractal/holla",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wearefractal/holla.git"
+  },
+  "author": {
+    "name": "Fractal",
+    "email": "contact@wearefractal.com",
+    "url": "http://wearefractal.com/"
+  },
+  "main": "./index.js",
+  "keywords": [
+    "webrtc",
+    "rtc",
+    "calling",
+    "call",
+    "voip",
+    "p2p",
+    "data",
+    "sip",
+    "voice",
+    "phone",
+    "peer"
+  ],
+  "dependencies": {
+    "coffee-script": "*",
+    "async": "*",
+    "socket.io": "0.9.14",
+    "base64id": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*",
+    "connect": "*",
+    "uglify-js": "*"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script --reporter spec",
+    "start": "examples/server.coffee"
+  },
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/wearefractal/holla/raw/master/LICENSE"
+    }
+  ],
+  "subdomain": "holla",
+  "readme": "## Support\n\nholla has full support for Chrome 24+ and Firefox 21+ (Currently Nightly)\n\n## Example\n\n### Server\n\n```javascript\nvar holla = require('holla');\nvar server = http.createServer().listen(8080);\nvar rtc = holla.createServer(server);\n\nconsole.log('Server running on port 8080');\n```\n\nNote: Express 3 is no longer a httpServer so you need to do something like:  \n```javascript\nvar server = require('http').createServer(app).listen(8080);\n```\nbefore passing it to holla.createServer\n\n### Client\n\nSending a call:\n\n```javascript\nvar rtc = holla.createClient();\n\nrtc.register(\"tom\", function(err) {\n\n  holla.createFullStream(function(err, stream) {\n    rtc.createCall(function(err, call){\n      call.setLocalStream(stream);\n      call.add(\"bob\");\n    });\n  });\n\n});\n```\n\nReceiving a call:\n\n```javascript\nvar rtc = holla.createClient();\n\nrtc.register(\"bob\", function(worked) {\n  rtc.on(\"call\", function(call) {\n\n    holla.createFullStream(function(err, stream) {\n      call.setLocalStream(stream);\n      call.answer();\n    });\n\n  });\n});\n```\n\n## Client\n\n### holla\n\n#### .supported\n\ntrue or false if WebRTC is supported in the browser\n\n#### .createClient(options)\n\nTakes some options to specify host (see source) - defaults to window.location.href. Returns a Client instance\n\n#### .createStream(opt, cb)\n\nCreates a WebRTC stream - opt looks like ```{video:true,audio:true}``` depending on the stream you want. cb signature is ```(err, stream)```\n\n#### createFullStream(cb)\n\nSugar for ```.createStream({video:true,audio:true}, cb)```\n\n#### createVideoStream(cb)\n\nSugar for ```.createStream({video:true,audio:false}, cb)```\n\n#### createAudioStream(cb)\n\nSugar for ```.createStream({video:false,audio:true}, cb)```\n\n\n### Client\n\n#### .register(name, cb)\n\nRegisters your connection with the server under a name. cb receives an error if there was a problem.\n\n#### .createCall(cb)\n\nCreates a call with the server. Callback receives an error and the call instance.\n\n#### Events\n\nClient will emit reconnect, disconnect, call, and error events\n\n\n### Call\n\n#### .caller\n\nUser class for the caller. Will not exist if you started the call.\n\n#### .user(name)\n\nGets a user in the call by name\n\n#### .users()\n\nReturns all users in the call\n\n#### .setLocalStream(stream)\n\nAdds your WebRTC stream to the call. Must be done before answering or sending a call.\n\n#### .answer()\n\nAccepts the call (inbound only)\n\n#### .decline()\n\nDeclines the call (inbound only)\n\n#### .end(release)\n\nEnds the call (hangup and close connection). If release is true it will call releaseLocalStream() on the call.\n\n#### releaseLocalStream()\n\nRelease use of the attached stream. Will make a users webcam light go off so they don't think you're spying.\n\n#### mute()\n\nMutes the local user's audio to the remote user\n\n#### unmute()\n\nUnmutes the local user's audio to the remote user\n\n#### Events\n\nCall will emit userAdded, userRemoved, userAnswered, userDeclined, end, and error events\n\n### User\n\nTODO\n\n## Examples\n\nYou can view more examples in the [example folder.](https://github.com/wearefractal/holla/tree/master/examples)\n\n## Demo\n\nThere is a crappy demo up at [holla.jit.su](http://holla.jit.su)\n\n## Adapters (complex use cases)\n\nThe holla server comes with a default adapter that uses an in-memory store and no auth to manage users. If you would like to override these preference just pass your overrides as the second object to ```.createServer(httpServer, {adapter: adapterObject})```.\n\nAn example adapter that uses redis instead of in-memory might look something like this (pseudo-code)\n\n```coffee-script\n# assume redis is a node-redis connection\n\nadapter =\n  register: (req, cb) ->\n    client.hset \"users\", req.name, req.socket.id, cb\n\n  getId: (name, cb) -> \n    client.hget \"users\", name (err, id) ->\n      cb id\n\n  unregister: (req, cb) ->\n    client.hdel \"users\", req.name, cb\n\n  getPresenceTargets: (req, cb) ->\n    # these are the people notified on presence changes\n    # this assumes contacts.{name} is a list of names you created somewhere else\n    client.get \"contacts.#{req.name}\", (err, contacts) ->\n      cb contacts\n```\n\n### Changing the name on register\n\nYou can set req.name before calling cb to change the name (useful if you send up a cookie in .register then do a lookup for the real name)\n\n## Effects\n\nThere is effects.css in the repository with some common CSS classes you will want when dealing with RTC video tags (flip, shadow, reflect, fadein, etc.). These are prefixed with rtc (example: .rtc-flip)\n\n## LICENSE\n\n(MIT License)\n\nCopyright (c) 2012 Fractal <contact@wearefractal.com>\n\nPermission is hereby granted, free of charge, to any person obtaining\na copy of this software and associated documentation files (the\n\"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\nNONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE\nLIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\nWITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+  "readmeFilename": "README.md",
+  "_id": "holla@0.7.0",
+  "dist": {
+    "shasum": "6f5fdabfcaefb80bf45ca3be3e921fdb79876ece"
+  },
+  "_resolved": "git://github.com/wearefractal/holla.git#cedf327c70fd4b06a6dfa82e73789c9dde89c6d3",
+  "_from": "git://github.com/wearefractal/holla.git#0.7"
 }

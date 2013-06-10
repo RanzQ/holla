@@ -67,7 +67,7 @@ class Server extends EventEmitter
       cb null, callId
 
   endCall: (socket, callId, cb) =>
-    console.log "addUser", socket.id, callId if @options.debug
+    console.log "endCall", socket.id, callId if @options.debug
     @getIdentityFromSocket socket, (err, identity) =>
       return cb err if err?
       inRoom = @io.sockets.manager.roomClients[socket.id]?["/#{callId}"]
@@ -88,11 +88,12 @@ class Server extends EventEmitter
         roomInfo =
           id: callId
           caller: identity
+        socket.join callId
         @askSocketToJoin socket, roomInfo, (err, wantsToJoin) =>
           return cb err if err?
-          return cb "Call declined" unless wantsToJoin
+          socket.leave(callId) unless wantsToJoin
+          return cb "Call declined"  unless wantsToJoin
           @io.sockets.in(callId).emit "#{callId}:userAdded", userIdentity
-          socket.join callId
           @emit "call", callId, identity, userIdentity
           cb()
 
@@ -106,7 +107,7 @@ class Server extends EventEmitter
         return cb err if err?
         socket.emit "#{callId}:#{identity}:sdp", desc
         cb()
-  
+
   sendSDPAnswer: (socket, callId, userIdentity, desc, cb) =>
     console.log "sendSDPAnswer", socket.id, callId, userIdentity, desc if @options.debug
     @getIdentityFromSocket socket, (err, identity) =>
